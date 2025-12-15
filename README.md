@@ -65,6 +65,27 @@ O projeto foi construído seguindo o princípio **"Senior Simplicity"** — tecn
 </div>
 
 ---
+Desenvolvido com foco em simular um ambiente real de RH, o **Sistema Ponto Pro** foi construído sob uma **Arquitetura MVC (Model-View-Controller)** robusta. O projeto elimina a dependência de frameworks pesados, entregando performance bruta e código limpo utilizando PHP 8 Nativo, com práticas avançadas de segurança e organização.
+
+---
+
+## 🏗️ Arquitetura e Backend (Senior Level)
+
+Diferente de scripts PHP comuns, este sistema utiliza uma engenharia de software profissional:
+
+### 📂 Estrutura de Pastas
+```text
+/sistema-ponto
+├── app/
+│   ├── Config/        # Singleton de Conexão (PDO)
+│   ├── Controllers/   # Lógica de Negócio (Admin, Auth, Ponto, User)
+│   └── Utils/         # Helpers e Tratamento de Uploads
+├── public/            # ÚNICO ponto de acesso (Security Layer)
+│   ├── documentos/    # Uploads protegidos (.htaccess)
+│   └── index.php      # Roteador (Router Pattern)
+└── resources/
+    ├── layouts/       # Cabeçalhos e Rodapés reutilizáveis
+    └── views/         # Telas HTML limpas (sem query SQL)
 
 ## 📦 Como Instalar
 
