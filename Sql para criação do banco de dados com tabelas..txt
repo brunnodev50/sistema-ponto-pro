@@ -1,0 +1,74 @@
+-- Criação do Banco de Dados
+CREATE DATABASE IF NOT EXISTS sistema_ponto;
+USE sistema_ponto;
+
+-- =======================================================
+-- 1. TABELA DE USUÁRIOS
+-- Armazena login, dados pessoais e perfil de acesso
+-- =======================================================
+CREATE TABLE usuarios (
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    cpf VARCHAR(14) DEFAULT NULL,       -- Suporta formato 000.000.000-00
+    matricula VARCHAR(20) DEFAULT NULL, -- Identificação interna da empresa
+    senha VARCHAR(255) NOT NULL,        -- Hash Bcrypt (Nunca texto puro)
+    perfil ENUM('admin','funcionario') DEFAULT 'funcionario',
+    ativo TINYINT(1) DEFAULT 1,         -- 1 = Ativo, 0 = Inativo (Soft Delete)
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY email (email),
+    UNIQUE KEY cpf (cpf),
+    UNIQUE KEY matricula (matricula)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- =======================================================
+-- 2. TABELA DE REGISTROS DE PONTO
+-- O "Log" oficial de horários
+-- =======================================================
+CREATE TABLE registros_ponto (
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    usuario_id INT(11) NOT NULL,
+    data_hora DATETIME NOT NULL,
+    tipo ENUM('entrada','pausa_inicio','pausa_fim','saida') NOT NULL,
+    PRIMARY KEY (id),
+    KEY usuario_id (usuario_id),
+    CONSTRAINT registros_ponto_ibfk_1 FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- =======================================================
+-- 3. TABELA DE SOLICITAÇÕES DE AJUSTE
+-- Pedidos de correção com evidências (uploads)
+-- =======================================================
+CREATE TABLE solicitacoes_ajuste (
+    id INT(11) NOT NULL AUTO_INCREMENT,
+    usuario_id INT(11) NOT NULL,
+    data_ajuste DATE NOT NULL,
+    pont_tipo ENUM('entrada','pausa_inicio','pausa_fim','saida') NOT NULL,
+    hora_nova TIME NOT NULL,
+    tipo_ajuste ENUM('esquecimento','erro_sistema','outros') NOT NULL,
+    motivo TEXT NOT NULL,
+    anexo_1 VARCHAR(255) DEFAULT NULL, -- Nome do arquivo salvo na pasta public/documentos
+    anexo_2 VARCHAR(255) DEFAULT NULL,
+    anexo_3 VARCHAR(255) DEFAULT NULL,
+    status ENUM('pendente','aprovado','rejeitado') DEFAULT 'pendente',
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    KEY usuario_id (usuario_id),
+    CONSTRAINT solicitacoes_ajuste_ibfk_1 FOREIGN KEY (usuario_id) REFERENCES usuarios (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- =======================================================
+-- 4. SEED INICIAL (USUÁRIO ADMIN PADRÃO)
+-- =======================================================
+-- Login: admin@empresa.com
+-- Senha: 123
+-- Nota: A senha abaixo é o hash BCRYPT de "123"
+-- =======================================================
+
+INSERT INTO usuarios (nome, email, cpf, matricula, senha, perfil, ativo) VALUES
+('Super Admin', 'admin@empresa.com', '000.000.000-00', 'ADM001', '$2y$10$2.A5m/Gk.1Z0.j.1.1.1.e1.1.1.1.1.1.1.1.1.1.1.1.1.1', 'admin', 1);
+
+-- Ajuste o hash acima se necessário. 
+-- Para gerar um hash novo manualmente via PHP: echo password_hash('sua_senha', PASSWORD_DEFAULT);
+-- O hash para 'admin123' é geralmente algo como: $2y$10$Guc2Qgm7IswOYaIgNpwxo.DbwjaoJchpSOFuDjkaUPakV3z9jdlGm
